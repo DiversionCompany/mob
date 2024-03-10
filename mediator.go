@@ -46,7 +46,9 @@ func (s *sender[T, U]) Send(ctx context.Context, req T) (U, error) {
 	var res U
 	var err error
 	k := reqHnKey{reqt: reflect.TypeOf(req), rest: reflect.TypeOf(res)}
+	m.mutex.Lock()
 	hn, ok := s.m.rhandlers[k]
+	m.mutex.Unlock()
 	if !ok {
 		return res, ErrHandlerNotFound
 	}
@@ -94,6 +96,8 @@ func RegisterRequestHandlerTo[T any, U any](m *Mob, rhn RequestHandler[T, U], op
 	}
 	var req T
 	var res U
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	k := reqHnKey{reqt: reflect.TypeOf(req), rest: reflect.TypeOf(res)}
 	if _, ok := m.rhandlers[k]; ok {
 		return ErrDuplicateHandler
