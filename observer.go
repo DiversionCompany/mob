@@ -39,7 +39,9 @@ type notifier[T any] struct {
 }
 
 func (nf *notifier[T]) Notify(ctx context.Context, event T) error {
+	nf.m.mutex.Lock()
 	hns, ok := nf.m.ehandlers[reflect.TypeOf(event)]
+	nf.m.mutex.Unlock()
 	if !ok {
 		return ErrHandlerNotFound
 	}
@@ -89,6 +91,8 @@ func RegisterEventHandlerTo[T any](m *Mob, ehn EventHandler[T], opts ...Option) 
 	for _, opt := range opts {
 		opt.apply(hn)
 	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	m.ehandlers[k] = append(m.ehandlers[k], hn)
 	return nil
 }
