@@ -5,6 +5,7 @@ package mob
 import (
 	"errors"
 	"reflect"
+	"sync"
 )
 
 var m *Mob
@@ -16,13 +17,14 @@ func init() {
 // A Mob is a request / event handlers registry.
 type Mob struct {
 	interceptors []Interceptor
+	mutex        *sync.Mutex
 	rhandlers    map[reqHnKey]*handler
 	ehandlers    map[reflect.Type][]*handler
 }
 
 // New returns an initialized Mob instance.
 func New() *Mob {
-	return &Mob{rhandlers: map[reqHnKey]*handler{}, ehandlers: map[reflect.Type][]*handler{}}
+	return &Mob{rhandlers: map[reqHnKey]*handler{}, ehandlers: map[reflect.Type][]*handler{}, mutex: &sync.Mutex{}}
 }
 
 var (
